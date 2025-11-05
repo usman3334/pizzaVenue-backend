@@ -19,7 +19,14 @@ async function connectMongo() {
   if (!MONGODB_URI) {
     console.warn('MONGODB_URI not set; backend will run but API calls will fail.');
   }
-  mongoClient = new MongoClient(MONGODB_URI, { ignoreUndefined: true });
+  mongoClient = new MongoClient(MONGODB_URI, {
+    ignoreUndefined: true,
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+    tlsInsecure: false,
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 10000,
+  });
   await mongoClient.connect();
   db = mongoClient.db(MONGODB_DB);
   return db;
