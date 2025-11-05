@@ -5,7 +5,12 @@ import { MongoClient } from 'mongodb';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const MONGODB_URI = process.env.MONGODB_URI || '';
+// Prefer common env names used by Railway and addons
+const RAW_MONGODB_URI = process.env.MONGODB_URI
+  || process.env.MONGODB_URL
+  || process.env.MONGO_URL
+  || process.env.DATABASE_URL
+  || '';
 const MONGODB_DB = process.env.MONGODB_DB || 'pizzavenue';
 const CONFIG_COLLECTION = 'config';
 
@@ -16,10 +21,16 @@ let mongoClient;
 let db;
 async function connectMongo() {
   if (db) return db;
-  if (!MONGODB_URI) {
-    console.warn('MONGODB_URI not set; backend will run but API calls will fail.');
+  // Validate connection string early with a clear message for production
+  const isValidUri = /^mongodb(\+srv)?:\/\//i.test(RAW_MONGODB_URI);
+  if (!isValidUri) {
+    console.error('Invalid MongoDB connection string. It must start with "mongodb://" or "mongodb+srv://".');
+    console.error('Received value:', RAW_MONGODB_URI ? '(redacted)' : '(empty)');
+    console.error('Set one of: MONGODB_URI, MONGODB_URL, MONGO_URL, or DATABASE_URL');
+    console.error('Examples: mongodb://user:pass@host:27017/db or mongodb+srv://user:pass@cluster.mongodb.net/db');
+    process.exit(1);
   }
-  mongoClient = new MongoClient(MONGODB_URI, {
+  mongoClient = new MongoClient(RAW_MONGODB_URI, {
     ignoreUndefined: true,
     serverSelectionTimeoutMS: 5000,
     connectTimeoutMS: 10000,
