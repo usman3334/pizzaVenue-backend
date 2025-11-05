@@ -21,9 +21,6 @@ async function connectMongo() {
   }
   mongoClient = new MongoClient(MONGODB_URI, {
     ignoreUndefined: true,
-    tls: true,
-    tlsAllowInvalidCertificates: false,
-    tlsInsecure: false,
     serverSelectionTimeoutMS: 5000,
     connectTimeoutMS: 10000,
   });
